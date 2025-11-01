@@ -1,6 +1,6 @@
 from Link.ModuleConn import ModuleConn
 from Link.Pin import Pin
-from ModuleClass.basicModule import BasicModule
+from ModuleClass.BasicModule import BasicModule
 from UserLib.LibManager import LibManager
 from Verilogs.VerilogGenerator import generate_verilog
 

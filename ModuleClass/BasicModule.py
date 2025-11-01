@@ -4,7 +4,6 @@ import pickle
 from Link import Pin, ModuleConn
 
 
-
 class BasicModule:
     """
     表示一个 Verilog 模块。
@@ -13,9 +12,10 @@ class BasicModule:
 
     def __init__(self, name: str):
         self.name = name
-        self.pins: [Pin] = [] # Pin 对象
+        self.pins: [Pin] = []  # Pin 对象
         self.logic: list[str] = []     # Verilog 逻辑语句
-        self.submodules: list[tuple[str, BasicModule,ModuleConn:ModuleConn]] = []  # (实例名, 子模块对象)
+        # 修正 submodules 的注解，避免语法错误；存储项为 (inst_name, BasicModule, ModuleConn)
+        self.submodules: list = []
 
     def add_pin(self, pin: Pin):
         """
@@ -46,9 +46,15 @@ class BasicModule:
         递归收集所有子模块名称（不重复）。
         """
         names = set()
-        for _, submod in self.submodules:
-            names.add(submod.name)
-            names.update(submod.collect_submodule_names())
+        for item in self.submodules:
+            # 兼容可能的元组长度 (inst_name, submodule, conn)
+            if len(item) >= 2:
+                submod = item[1]
+                if hasattr(submod, "name"):
+                    names.add(submod.name)
+                    # 递归
+                    if hasattr(submod, "collect_submodule_names"):
+                        names.update(submod.collect_submodule_names())
         return names
 
     def export(self, path: str = "UserLib/lib"):
@@ -62,3 +68,10 @@ class BasicModule:
             pickle.dump(self, f)
         print(f"[✓] 模块 '{self.name}' 已导出到: {file_path}")
 
+
+    def export_std(self, path: str = "UserLib/Stdlib"):
+        os.makedirs(path, exist_ok=True)
+        file_path = os.path.join(path, f"{self.name}.pkl")
+        with open(file_path, "wb") as f:
+            pickle.dump(self, f)
+        print(f"[✓] 模块 '{self.name}' 已导出到: {file_path}")
